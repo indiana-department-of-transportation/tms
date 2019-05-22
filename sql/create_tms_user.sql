@@ -11,7 +11,7 @@ BEGIN
   IF NOT EXISTS (
     SELECT
     FROM pg_catalog.pg_roles
-    WHERE rolename = 'tms_app') THEN
+    WHERE pg_roles.rolname = 'tms_app') THEN
     CREATE ROLE tms_app LOGIN PASSWORD 'abadpassword';
   END IF;
 END

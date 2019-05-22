@@ -12,5 +12,5 @@ psql -tc "ALTER DATABASE tms OWNER TO tms_app"
 echo "Finished."
 
 echo "Creating CCTV tables"
-psql -U postgres -f sql/cctv/cctv_module.sql
+psql -U postgres -f sql/cctv/camera_module.sql
 echo "Finished"
