@@ -32,7 +32,7 @@ ALTER TABLE camera.model OWNER TO tms_app;
 
 CREATE TABLE IF NOT EXISTS camera.control(
   id SERIAL PRIMARY KEY,
-  control_protocol
+  control_protocol VARCHAR(128) NOT NULL
 );
 ALTER TABLE camera.control OWNER TO tms_app;
 
