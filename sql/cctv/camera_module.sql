@@ -128,7 +128,7 @@ $$ language sql STRICT;
 
 -- Insertion function for channel
 CREATE OR REPLACE FUNCTION camera.add_channel(
-  INTEGER,
+  TEXT,
   TEXT,
   TEXT,
   TEXT,
