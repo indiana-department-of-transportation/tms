@@ -79,7 +79,7 @@ $$ language sql STRICT;
 -- Insertion function for device
 CREATE OR REPLACE FUNCTION camera.add_device(
   VARCHAR,
-  VARCHAR,
+  TEXT::geometry,
   INTEGER,
   INTEGER,
   INET,
