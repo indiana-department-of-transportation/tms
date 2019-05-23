@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS camera.channel (
 ALTER TABLE camera.channel OWNER TO tms_app;
 
 -- Insert function for manufacturer
-CREATE OR REPLACE FUNCTION camera.add_manufactuer(
+CREATE OR REPLACE FUNCTION camera.add_manufacturer(
   TEXT
 ) RETURNS BOOLEAN AS $$
   INSERT INTO camera.manufacturer (
@@ -91,9 +91,9 @@ $$ language sql STRICT;
 -- Insertion function for device
 CREATE OR REPLACE FUNCTION camera.add_device(
   GEOMETRY,
-  INTEGER,
-  INTEGER,
-  INTEGER,
+  TEXT,
+  TEXT,
+  TEXT,
   INET,
   INET,
   INET,
@@ -114,15 +114,26 @@ CREATE OR REPLACE FUNCTION camera.add_device(
     publish_snapshot
 ) VALUES (
   POINT($1)::geometry,
-  $2,
-  $3,
-  $4,
+  (SELECT id from camera.control WHERE control_protocol = $2),
+  (SELECT id from camera.manufacturer_id WHERE manufacturer = $3),
+  (SELECT id from camera.model WHERE model = $4),
   $5,
   $6,
   $7,
   $8,
   $9,
   $10
+) RETURNING true;
+$$ language sql STRICT;
+
+-- Insertion function for control protocols
+CREATE OR REPLACE FUNCTION camera.add_control_protocol(
+  TEXT, 
+) RETURNS BOOLEAN AS $$
+  INSERT INTO camera.control (
+    control_protocol
+) VALUES (
+  $1
 ) RETURNING true;
 $$ language sql STRICT;
 
