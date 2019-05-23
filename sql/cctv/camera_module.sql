@@ -38,7 +38,7 @@ ALTER TABLE camera.control OWNER TO tms_app;
 
 CREATE TABLE IF NOT EXISTS camera.device (
   id SERIAL PRIMARY KEY,
-  location_geometry public.geometry,
+  location_geometry public.geometry NOT NULL,
   control_id INTEGER NOT NULL REFERENCES camera.control(id),
   manufacturer_id INTEGER NOT NULL REFERENCES camera.manufacturer(id),
   model_id INTEGER  NOT NULL REFERENCES camera.model(id),
@@ -56,7 +56,7 @@ CREATE OR REPLACE FUNCTION camera.add_manufactuer(
   TEXT
 ) RETURNS BOOLEAN AS $$
   INSERT INTO camera.manufacturer(
-    manufacturer_id,
+    manufacturer,
 ) VALUES(
   $1
 ) RETURNING true;
@@ -71,7 +71,7 @@ CREATE OR REPLACE FUNCTION camera.add_model(
     manufacturer_id,
     model
 ) VALUES(
-  SELECT id FROM camear.manufacturer WHERE manfuacturer = $1,
+  SELECT id FROM camera.manufacturer WHERE manfuacturer = $1,
   $2
   ) RETURNING true;
 $$ language sql STRICT;
