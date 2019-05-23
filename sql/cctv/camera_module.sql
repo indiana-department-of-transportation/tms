@@ -58,10 +58,10 @@ CREATE TABLE IF NOT EXISTS camera.channel (
   stillshot_url_extension VARCHAR(128),
   stillshot_protocol VARCHAR(128),
   primary_stillshot BOOLEAN DEFAULT FALSE,
-  stream_url_extension VARHCAR(128),
+  stream_url_extension VARCHAR(128),
   stream_protocol VARCHAR(128)
 );
-ALTER TABLE camear.channel OWNER TO tms_app;
+ALTER TABLE camera.channel OWNER TO tms_app;
 
 -- Insert function for manufacturer
 CREATE OR REPLACE FUNCTION camera.add_manufactuer(
@@ -135,7 +135,7 @@ CREATE OR REPLACE FUNCTION camera.add_channel(
   BOOLEAN,
   TEXT,
   TEXT
-) RETRUNS BOOLEAN AS $$
+) RETURNS BOOLEAN AS $$
   INSERT INTO camera.channel (
     model_id,
     channel_name,
