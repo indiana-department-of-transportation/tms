@@ -45,7 +45,8 @@ CREATE TABLE IF NOT EXISTS camera.device (
   ipv4 INET,
   ipv6 INET,
   multicast INET,
-  friendly_name VARCHAR(128),
+  friendly_name VARCHAR(128) UNIQUE,
+  camera_number INTEGER NOT NULL UNIQUE, 
   publish_stream BOOLEAN DEFAULT FALSE,
   publish_snapshot BOOLEAN DEFAULT FALSE
 );
@@ -98,6 +99,7 @@ CREATE OR REPLACE FUNCTION camera.add_device(
   INET,
   INET,
   TEXT,
+  INTEGER,
   BOOLEAN,
   BOOLEAN
 ) RETURNS BOOLEAN AS $$
@@ -110,6 +112,7 @@ CREATE OR REPLACE FUNCTION camera.add_device(
     ipv6,
     multicast,
     friendly_name,
+    camera_number,
     publish_stream,
     publish_snapshot
 ) VALUES (
@@ -122,7 +125,8 @@ CREATE OR REPLACE FUNCTION camera.add_device(
   $7,
   $8,
   $9,
-  $10
+  $10,
+  $11
 ) RETURNING true;
 $$ language sql STRICT;
 
