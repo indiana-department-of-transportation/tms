@@ -38,7 +38,7 @@ ALTER TABLE camera.control OWNER TO tms_app;
 
 CREATE TABLE IF NOT EXISTS camera.device (
   id SERIAL PRIMARY KEY,
-  location VARCHAR(128), --Revisit needs to be Geom
+  location_geometry postgis.geometry,
   control_id INTEGER NOT NULL REFERENCES camera.control(id),
   manufacturer_id INTEGER NOT NULL REFERENCES camera.manufacturer(id),
   model_id INTEGER  NOT NULL REFERENCES camera.model(id),
@@ -79,7 +79,7 @@ $$ language sql STRICT;
 -- Insertion function for device
 CREATE OR REPLACE FUNCTION camera.add_device(
   VARCHAR,
-  INTEGER,
+  VARCHAR,
   INTEGER,
   INTEGER,
   INET,
@@ -90,7 +90,7 @@ CREATE OR REPLACE FUNCTION camera.add_device(
   BOOLEAN
 ) RETURNS BOOLEAN AS $$
   INSERT INTO camera.device (
-    location,
+    location_geometry,
     control_id,
     manufacturer_id,
     model_id,
@@ -102,7 +102,7 @@ CREATE OR REPLACE FUNCTION camera.add_device(
     publish_snapshot
 ) VALUES (
   $1,
-  $2,
+  POINT($2),
   $3,
   $4,
   $5,
