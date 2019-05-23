@@ -55,23 +55,23 @@ ALTER TABLE camera.device OWNER TO tms_app;
 CREATE OR REPLACE FUNCTION camera.add_manufactuer(
   TEXT
 ) RETURNS BOOLEAN AS $$
-  INSERT INTO camera.manufacturer(
-    manufacturer,
+  INSERT INTO camera.manufacturer (
+    manufacturer
 ) VALUES(
   $1
 ) RETURNING true;
 $$ language sql STRICT;
 
 -- Insert function for model
-CREATE OR REPLACE FUNCTION camera.add_model(
-  TEXT,
+CREATE OR REPLACE FUNCTION camera.add_model (
+  INTEGER,
   TEXT
 )  RETURNS BOOLEAN AS $$
   INSERT INTO camera.model(
     manufacturer_id,
     model
 ) VALUES(
-  SELECT id FROM camera.manufacturer WHERE manfuacturer = $1,
+  (SELECT id FROM manufacturer.id WHERE manfuacturer = $1),
   $2
   ) RETURNING true;
 $$ language sql STRICT;
