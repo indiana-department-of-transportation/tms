@@ -51,6 +51,18 @@ CREATE TABLE IF NOT EXISTS camera.device (
 );
 ALTER TABLE camera.device OWNER TO tms_app;
 
+CREATE TABLE IF NOT EXISTS camera.channel (
+  id SERIAL PRIMARY KEY,
+  model_id INTEGER NOT NULL REFERENCES camera.model(id),
+  channel_name VARCHAR(128),
+  stillshot_url_extension VARCHAR(128),
+  stillshot_protocol VARCHAR(128),
+  primary_stillshot BOOLEAN DEFAULT FALSE,
+  stream_url_extension VARHCAR(128),
+  stream_protocol VARCHAR(128)
+);
+ALTER TABLE camear.channel OWNER TO tms_app;
+
 -- Insert function for manufacturer
 CREATE OR REPLACE FUNCTION camera.add_manufactuer(
   TEXT
@@ -111,5 +123,34 @@ CREATE OR REPLACE FUNCTION camera.add_device(
   $8,
   $9,
   $10
+) RETURNING true;
+$$ language sql STRICT;
+
+-- Insertion function for channel
+CREATE OR REPLACE FUNCTION camera.add_channel(
+  INTEGER,
+  TEXT,
+  TEXT,
+  TEXT,
+  BOOLEAN,
+  TEXT,
+  TEXT
+) RETRUNS BOOLEAN AS $$
+  INSERT INTO camera.channel (
+    model_id,
+    channel_name,
+    stillshot_url_extension,
+    stillshot_protocol,
+    primary_stillshot,
+    stream_url_extension,
+    stream_protocol
+) VALUES (
+  (SELECT id from camera.model WHERE model = $1),
+  $2,
+  $3,
+  $4,
+  $5,
+  $6,
+  $7
 ) RETURNING true;
 $$ language sql STRICT;
