@@ -115,7 +115,7 @@ CREATE OR REPLACE FUNCTION camera.add_device(
 ) VALUES (
   POINT($1)::geometry,
   (SELECT id from camera.control WHERE control_protocol = $2),
-  (SELECT id from camera.manufacturer_id WHERE manufacturer = $3),
+  (SELECT id from camera.manufacturer WHERE manufacturer = $3),
   (SELECT id from camera.model WHERE model = $4),
   $5,
   $6,
@@ -128,7 +128,7 @@ $$ language sql STRICT;
 
 -- Insertion function for control protocols
 CREATE OR REPLACE FUNCTION camera.add_control_protocol(
-  TEXT, 
+  TEXT
 ) RETURNS BOOLEAN AS $$
   INSERT INTO camera.control (
     control_protocol
