@@ -64,14 +64,14 @@ $$ language sql STRICT;
 
 -- Insert function for model
 CREATE OR REPLACE FUNCTION camera.add_model (
-  INTEGER,
+  TEXT,
   TEXT
 )  RETURNS BOOLEAN AS $$
   INSERT INTO camera.model(
     manufacturer_id,
     model
 ) VALUES(
-  (SELECT id FROM manufacturer.id WHERE manfuacturer = $1),
+  (SELECT id from camera.manufacturer WHERE manufacturer = $1),
   $2
   ) RETURNING true;
 $$ language sql STRICT;
