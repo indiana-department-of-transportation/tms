@@ -38,7 +38,7 @@ ALTER TABLE camera.control OWNER TO tms_app;
 
 CREATE TABLE IF NOT EXISTS camera.device (
   id SERIAL PRIMARY KEY,
-  location_geometry postgres."public".postgis.geometry,
+  location_geometry public.geometry,
   control_id INTEGER NOT NULL REFERENCES camera.control(id),
   manufacturer_id INTEGER NOT NULL REFERENCES camera.manufacturer(id),
   model_id INTEGER  NOT NULL REFERENCES camera.model(id),
