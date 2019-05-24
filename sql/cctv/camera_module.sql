@@ -134,11 +134,12 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   (SELECT ST_SetSRID(ST_Makepoint($1, $2),4326)),
   (SELECT id from camera.control WHERE control_protocol = $3),
   (SELECT id from camera.manufacturer WHERE manufacturer = $4),
-  (SELECT id from camera.model WHERE model = $5),
-  (SELECT id from camera.type WHERE type = $6),
+  (SELECT id from camera.model WHERE model = $5 and manufacturer_id = (
+    SELECT id from camera.manufacturer WHERE manufacturer = $4)),
+  (SELECT id from camera.type WHERE type = $7 ),
   (SELECT id from camera.channel WHERE model_id = (
     SELECT id from camera.model WHERE model = $5
-  ) and chanel_name = $7),
+  ) and channel.channel_name = $7),
   $8,
   $9,
   $10,
