@@ -117,23 +117,25 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
     publish_stream,
     publish_snapshot
 ) VALUES (
-  POINT($1)::geometry,
-  (SELECT id from camera.control WHERE control_protocol = $2),
-  (SELECT id from camera.manufacturer WHERE manufacturer = $3),
-  (SELECT id from camera.model WHERE model = $4),
-  $5,
+  (SELECT ST_SetSRID(ST_Makepoint($1, $2),4326)),
+  (SELECT id from camera.control WHERE control_protocol = $3),
+  (SELECT id from camera.manufacturer WHERE manufacturer = $4),
+  (SELECT id from camera.model WHERE model = $5),
   $6,
   $7,
   $8,
   $9,
   $10,
-  $11
+  $11,
+  $12
 ) RETURNING true;
 $$ language sql STRICT;
 
+
+
 -- Insertion function for control protocols
 CREATE OR REPLACE FUNCTION camera.add_control_protocol(
-  TEXT
+  "Control protocol" TEXT
 ) RETURNS BOOLEAN AS $$
   INSERT INTO camera.control (
     control_protocol
