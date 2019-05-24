@@ -66,7 +66,7 @@ ALTER TABLE camera.channel OWNER TO tms_app;
 
 -- Insert function for manufacturer
 CREATE OR REPLACE FUNCTION camera.add_manufacturer(
-  TEXT
+  "Manufacturer" TEXT
 ) RETURNS BOOLEAN AS $$
   INSERT INTO camera.manufacturer (
     manufacturer
@@ -77,8 +77,8 @@ $$ language sql STRICT;
 
 -- Insert function for model
 CREATE OR REPLACE FUNCTION camera.add_model (
-  TEXT,
-  TEXT
+  "Manufacturer" TEXT,
+  "Model" TEXT
 )  RETURNS BOOLEAN AS $$
   INSERT INTO camera.model(
     manufacturer_id,
@@ -90,18 +90,19 @@ CREATE OR REPLACE FUNCTION camera.add_model (
 $$ language sql STRICT;
 
 -- Insertion function for device
-CREATE OR REPLACE FUNCTION camera.add_device(
-  GEOMETRY,
-  TEXT,
-  TEXT,
-  TEXT,
-  INET,
-  INET,
-  INET,
-  TEXT,
-  INTEGER,
-  BOOLEAN,
-  BOOLEAN
+CREATE OR REPLACE FUNCTION "camera"."add_device"(
+  "longitude" float8,
+  "latitude" float8,
+  "control protocol" text,
+  "manufacturer" text,
+  "model" text,
+  "IPv4 Address" inet,
+  "IPv6 Address" inet,
+  "Multicast Address" inet,
+  "Friendly name" text,
+  "Camera number" int4,
+  "Publish stream" bool,
+  "Publish snapshot" bool
 ) RETURNS BOOLEAN AS $$
   INSERT INTO camera.device (
     location_geometry,
@@ -143,13 +144,13 @@ $$ language sql STRICT;
 
 -- Insertion function for channel
 CREATE OR REPLACE FUNCTION camera.add_channel(
-  TEXT,
-  TEXT,
-  TEXT,
-  TEXT,
-  BOOLEAN,
-  TEXT,
-  TEXT
+  "Model" TEXT,
+  "Channel name" TEXT,
+  "Stillshot URL Extension" TEXT,
+  "Stillshot protocl" TEXT,
+  "Primary stillshot" BOOLEAN,
+  "Stream URL extension" TEXT,
+  "Stream protocol" TEXT
 ) RETURNS BOOLEAN AS $$
   INSERT INTO camera.channel (
     model_id,
