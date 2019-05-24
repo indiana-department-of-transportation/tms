@@ -241,11 +241,11 @@ CREATE OR REPLACE FUNCTION camera.get_all_cameras () RETURNS TABLE (
   device.publish_stream,
   device.publish_snapshot 
 FROM
-  device
-  INNER JOIN control ON device.control_id = control.
-  ID INNER JOIN manufacturer ON device.manufacturer_id = manufacturer.
-  ID INNER JOIN model ON device.model_id = model.
-  ID INNER JOIN channel ON device.snapshot_channel_id = channel.ID 
+  camera.device
+  INNER JOIN camera.control ON device.control_id = control.id
+  INNER JOIN camera.manufacturer ON device.manufacturer_id = manufacturer.id
+  INNER JOIN camera.model ON device.model_id = model.id
+  INNER JOIN camera.channel ON device.snapshot_channel_id = channel.id
 WHERE
   device.publish_stream = TRUE 
   OR device.publish_snapshot = TRUE;
