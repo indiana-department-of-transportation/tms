@@ -199,3 +199,50 @@ INSERT INTO camera.type(
   $1
 ) RETURNING true;
 $$ language sql STRICT;
+
+CREATE OR REPLACE FUNCTION camera.get_all_cameras () RETURNS TABLE (
+    longitude FLOAT8,
+    latitude FLOAT8,
+    control_protocol VARCHAR ( 128 ),
+    manufacturer VARCHAR ( 128 ),
+    model VARCHAR ( 128 ),
+    stillshot_protocol VARCHAR ( 128 ),
+    stillshot_url_extension VARCHAR ( 128 ),
+    stream_protocol VARCHAR ( 128 ),
+    stream_url_extension VARCHAR ( 128 ),
+    ipv4 INET,
+    ipv6 INET,
+    multicast INET,
+    friendly_name VARCHAR ( 128 ),
+    description VARCHAR ( 128 ),
+    camera_number INT4,
+    publish_stream BOOL,
+    publish_snapshot BOOL 
+  ) AS $$ SELECT
+  ST_X ( device.location_geometry ) AS longitude,
+  ST_Y ( device.location_geometry ) AS latitude,
+  control.control_protocol,
+  manufacturer.manufacturer,
+  model.model,
+  channel.stillshot_protocol,
+  channel.stillshot_url_extension,
+  channel.stream_protocol,
+  channel.stream_url_extension,
+  device.ipv4,
+  device.ipv6,
+  device.multicast,
+  device.friendly_name,
+  device.description,
+  device.camera_number,
+  device.publish_stream,
+  device.publish_snapshot 
+FROM
+  device
+  INNER JOIN control ON device.control_id = control.
+  ID INNER JOIN manufacturer ON device.manufacturer_id = manufacturer.
+  ID INNER JOIN model ON device.model_id = model.
+  ID INNER JOIN channel ON device.snapshot_channel_id = channel.ID 
+WHERE
+  device.publish_stream = TRUE 
+  OR device.publish_snapshot = TRUE;
+$$ LANGUAGE SQL STRICT;
