@@ -42,6 +42,17 @@ CREATE TABLE IF NOT EXISTS camera.type(
 );
 ALTER TABLE camera.type OWNER to tms_app;
 
+CREATE TABLE IF NOT EXISTS camera.channel (
+  id SERIAL PRIMARY KEY,
+  model_id INTEGER NOT NULL REFERENCES camera.model(id),
+  channel_name VARCHAR(128),
+  stillshot_url_extension VARCHAR(128),
+  stillshot_protocol VARCHAR(128),
+  stream_url_extension VARCHAR(128),
+  stream_protocol VARCHAR(128)
+);
+ALTER TABLE camera.channel OWNER TO tms_app;
+
 CREATE TABLE IF NOT EXISTS camera.device (
   id SERIAL PRIMARY KEY,
   location_geometry public.geometry,
@@ -49,6 +60,7 @@ CREATE TABLE IF NOT EXISTS camera.device (
   manufacturer_id INTEGER NOT NULL REFERENCES camera.manufacturer(id),
   model_id INTEGER  NOT NULL REFERENCES camera.model(id),
   type_id INTEGER NOT NULL REFERENCES camera.type(id),
+  snapshot_channel_id INTEGER NOT NULL REFERENCES camera.channel(id),
   ipv4 INET,
   ipv6 INET,
   multicast INET,
@@ -59,18 +71,6 @@ CREATE TABLE IF NOT EXISTS camera.device (
   publish_snapshot BOOLEAN DEFAULT FALSE
 );
 ALTER TABLE camera.device OWNER TO tms_app;
-
-CREATE TABLE IF NOT EXISTS camera.channel (
-  id SERIAL PRIMARY KEY,
-  model_id INTEGER NOT NULL REFERENCES camera.model(id),
-  channel_name VARCHAR(128),
-  stillshot_url_extension VARCHAR(128),
-  stillshot_protocol VARCHAR(128),
-  primary_stillshot BOOLEAN DEFAULT FALSE,
-  stream_url_extension VARCHAR(128),
-  stream_protocol VARCHAR(128)
-);
-ALTER TABLE camera.channel OWNER TO tms_app;
 
 -- Insert function for manufacturer
 CREATE OR REPLACE FUNCTION camera.add_manufacturer(
@@ -105,6 +105,7 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   "manufacturer" text,
   "model" text,
   "type" text,
+  "snapshot_channel" text,
   "IPv4 Address" inet,
   "IPv6 Address" inet,
   "Multicast Address" inet,
@@ -120,6 +121,7 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
     manufacturer_id,
     model_id,
     type_id,
+    snapshot_channel_id,
     ipv4,
     ipv6,
     multicast,
@@ -134,14 +136,17 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   (SELECT id from camera.manufacturer WHERE manufacturer = $4),
   (SELECT id from camera.model WHERE model = $5),
   (SELECT id from camera.type WHERE type = $6),
-  $7,
+  (SELECT id from camera.channel WHERE model_id = (
+    SELECT id from camera.model WHERE model = $5
+  ) and chanel_name = $7),
   $8,
   $9,
   $10,
   $11,
   $12,
   $13,
-  $14
+  $14,
+  $15
 ) RETURNING true;
 $$ language sql STRICT;
 
@@ -164,7 +169,6 @@ CREATE OR REPLACE FUNCTION camera.add_channel(
   "Channel name" TEXT,
   "Stillshot URL Extension" TEXT,
   "Stillshot protocl" TEXT,
-  "Primary stillshot" BOOLEAN,
   "Stream URL extension" TEXT,
   "Stream protocol" TEXT
 ) RETURNS BOOLEAN AS $$
@@ -173,7 +177,6 @@ CREATE OR REPLACE FUNCTION camera.add_channel(
     channel_name,
     stillshot_url_extension,
     stillshot_protocol,
-    primary_stillshot,
     stream_url_extension,
     stream_protocol
 ) VALUES (
@@ -182,8 +185,7 @@ CREATE OR REPLACE FUNCTION camera.add_channel(
   $3,
   $4,
   $5,
-  $6,
-  $7
+  $6
 ) RETURNING true;
 $$ language sql STRICT;
 
