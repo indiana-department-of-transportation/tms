@@ -119,7 +119,7 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
     control_id,
     manufacturer_id,
     model_id,
-    type,
+    type_id,
     ipv4,
     ipv6,
     multicast,
