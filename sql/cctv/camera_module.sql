@@ -36,12 +36,19 @@ CREATE TABLE IF NOT EXISTS camera.control(
 );
 ALTER TABLE camera.control OWNER TO tms_app;
 
+CREATE TABLE IF NOT EXISTS camera.type(
+  id SERIAL PRIMARY KEY,
+  type VARCHAR(128) NOT NULL
+);
+ALTER TABLE camera.type OWNER to tms_app;
+
 CREATE TABLE IF NOT EXISTS camera.device (
   id SERIAL PRIMARY KEY,
-  location_geometry public.geometry NOT NULL,
+  location_geometry public.geometry,
   control_id INTEGER NOT NULL REFERENCES camera.control(id),
   manufacturer_id INTEGER NOT NULL REFERENCES camera.manufacturer(id),
   model_id INTEGER  NOT NULL REFERENCES camera.model(id),
+  type_id INTEGER NOT NULL REFERENCES camera.type(id),
   ipv4 INET,
   ipv6 INET,
   multicast INET,
@@ -97,6 +104,7 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   "control protocol" text,
   "manufacturer" text,
   "model" text,
+  "type" text,
   "IPv4 Address" inet,
   "IPv6 Address" inet,
   "Multicast Address" inet,
@@ -111,6 +119,7 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
     control_id,
     manufacturer_id,
     model_id,
+    type,
     ipv4,
     ipv6,
     multicast,
@@ -124,14 +133,15 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   (SELECT id from camera.control WHERE control_protocol = $3),
   (SELECT id from camera.manufacturer WHERE manufacturer = $4),
   (SELECT id from camera.model WHERE model = $5),
-  $6,
+  (SELECT id from camera.type WHERE type = $6),
   $7,
   $8,
   $9,
   $10,
   $11,
   $12,
-  $13
+  $13,
+  $14
 ) RETURNING true;
 $$ language sql STRICT;
 
@@ -174,5 +184,15 @@ CREATE OR REPLACE FUNCTION camera.add_channel(
   $5,
   $6,
   $7
+) RETURNING true;
+$$ language sql STRICT;
+
+CREATE OR REPLACE FUNCTION camera.add_type(
+  "Type" TEXT
+) RETURNS BOOLEAN AS $$
+INSERT INTO camera.type(
+  type
+) VALUES (
+  $1
 ) RETURNING true;
 $$ language sql STRICT;
