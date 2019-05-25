@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS camera.device (
   model_id INTEGER  NOT NULL REFERENCES camera.model(id),
   type_id INTEGER NOT NULL REFERENCES camera.type(id),
   snapshot_channel_id INTEGER NOT NULL REFERENCES camera.channel(id),
-  authentication_type_id INTEGER NOT NULL REFERENCES camera.authentication_type(id)
+  authentication_type_id INTEGER NOT NULL REFERENCES camera.authentication_type(id),
   authentication_credentials_id INTEGER REFERENCES camera.authentication_credentials(id),
   ipv4 INET,
   ipv6 INET,
@@ -151,8 +151,8 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   "model" text,
   "type" text,
   "snapshot_channel" text,
-  "Authentication type"
-  "Authentication credentials"
+  "Authentication type" text,
+  "Authentication credentials" text,
   "IPv4 Address" inet,
   "IPv6 Address" inet,
   "Multicast Address" inet,
