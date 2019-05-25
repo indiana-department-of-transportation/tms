@@ -253,6 +253,16 @@ INSERT INTO camera.type(
 ) RETURNING true;
 $$ language sql STRICT;
 
+CREATE OR REPLACE FUNCTION camera.get_auth_types () RETURNS TABLE(
+  id INT,
+  authentication_type VARCHAR(128)
+) AS $$ SELECT
+  id,
+  authentication_type
+FROM
+  camera.authentication_type
+$$ LANGUAGE SQL STRICT;
+
 CREATE OR REPLACE FUNCTION camera.get_all_cameras () RETURNS TABLE (
     longitude FLOAT8,
     latitude FLOAT8,
