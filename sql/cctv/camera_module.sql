@@ -53,6 +53,20 @@ CREATE TABLE IF NOT EXISTS camera.channel (
 );
 ALTER TABLE camera.channel OWNER TO tms_app;
 
+CREATE TABLE IF NOT EXISTS camera.authentication_type (
+  id SERIAL PRIMARY KEY,
+  authentication_type VARCHAR(128)
+);
+ALTER TABLE camera.authentication_type TO tms_app;
+
+CREATE TABLE IF NOT EXISTS camera.authentication_credentials (
+  id SERIAL PRIMARY KEY,
+  credential_name VARCHAR(128),
+  username VARCHAR(128),
+  password VARCHAR(128)
+);
+ALTER TABLE camera.authentication_type TO tms_app;
+
 CREATE TABLE IF NOT EXISTS camera.device (
   id SERIAL PRIMARY KEY,
   location_geometry public.geometry,
@@ -61,6 +75,8 @@ CREATE TABLE IF NOT EXISTS camera.device (
   model_id INTEGER  NOT NULL REFERENCES camera.model(id),
   type_id INTEGER NOT NULL REFERENCES camera.type(id),
   snapshot_channel_id INTEGER NOT NULL REFERENCES camera.channel(id),
+  authentication_type_id INTEGER NOT NULL REFERENCES camera.authentication_type(id)
+  authentication_credentials_id INTEGER REFERENCES camera.authentication_credentials(id),
   ipv4 INET,
   ipv6 INET,
   multicast INET,
@@ -98,6 +114,34 @@ CREATE OR REPLACE FUNCTION camera.add_model (
   ) RETURNING true;
 $$ language sql STRICT;
 
+-- Insert for authentication type
+CREATE OR REPLACE FUNCTION camera.add_authentication_type (
+  "Authentication" TEXT
+) RETURNS BOOLEAN AS $$
+  INSERT INTO camera.authentication_type(
+    authentication_type
+  ) VALUES(
+    $1
+  ) RETURNING true;
+  $$ language sql STRICT;
+
+-- Insert for credentials
+CREATE OR REPLACE FUNCTION camera.add_authentication_credentials (
+  "Credential name" TEXT,
+  "Username" TEXT,
+  "Password" TEXT
+) RETURNS BOOLEAN AS $$
+  INSERT INTO camera.authentication_credentials(
+    credential_name,
+    username,
+    password
+) VALUES(
+  $1,
+  $2,
+  $3
+) RETURNING true;
+$$ language sql STRICT;
+
 -- Insertion function for device
 CREATE OR REPLACE FUNCTION "camera"."add_device"(
   "longitude" float8,
@@ -107,6 +151,8 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   "model" text,
   "type" text,
   "snapshot_channel" text,
+  "Authentication type"
+  "Authentication credentials"
   "IPv4 Address" inet,
   "IPv6 Address" inet,
   "Multicast Address" inet,
@@ -124,6 +170,8 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
     model_id,
     type_id,
     snapshot_channel_id,
+    authentication_type_id,
+    authentication_credentials_id,
     ipv4,
     ipv6,
     multicast,
@@ -143,18 +191,19 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   (SELECT id from camera.channel WHERE model_id = (
     SELECT id from camera.model WHERE model = $5
   ) and channel.channel_name = $7),
-  $8,
-  $9,
+  (SELECT id from camera.authentication_type WHERE type = $8),
+  (SELECT id from camera.authentication_credentials WHERE credential_name = $9),
   $10,
   $11,
   $12,
   $13,
   $14,
   $15,
-  $16
+  $16,
+  $17,
+  $18
 ) RETURNING true;
 $$ language sql STRICT;
-
 
 
 -- Insertion function for control protocols
