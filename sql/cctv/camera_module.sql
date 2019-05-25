@@ -263,6 +263,9 @@ CREATE OR REPLACE FUNCTION camera.get_all_cameras () RETURNS TABLE (
     stillshot_url_extension VARCHAR ( 128 ),
     stream_protocol VARCHAR ( 128 ),
     stream_url_extension VARCHAR ( 128 ),
+    authentication_type VARCHAR(128),
+    username VARCHAR(128),
+    password VARCHAR(128),
     ipv4 INET,
     ipv6 INET,
     multicast INET,
@@ -281,6 +284,9 @@ CREATE OR REPLACE FUNCTION camera.get_all_cameras () RETURNS TABLE (
   channel.stillshot_url_extension,
   channel.stream_protocol,
   channel.stream_url_extension,
+  authentication_type.authentication_type,
+  authentication_credentials.username,
+  authentication_credentials.password,
   device.ipv4,
   device.ipv6,
   device.multicast,
@@ -295,6 +301,8 @@ FROM
   INNER JOIN camera.manufacturer ON device.manufacturer_id = manufacturer.id
   INNER JOIN camera.model ON device.model_id = model.id
   INNER JOIN camera.channel ON device.snapshot_channel_id = channel.id
+  INNER JOIN camera.authentication_type ON device.authentication_type_id = authentication_type.id
+  INNER JOIN camera.authentication_credentials ON device.authentication_credentials_id = authentication_credentials.id
 WHERE
   device.publish_stream = TRUE 
   OR device.publish_snapshot = TRUE;
