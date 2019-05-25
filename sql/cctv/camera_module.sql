@@ -191,7 +191,7 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   (SELECT id from camera.channel WHERE model_id = (
     SELECT id from camera.model WHERE model = $5
   ) and channel.channel_name = $7),
-  (SELECT id from camera.authentication_type WHERE type = $8),
+  (SELECT id from camera.authentication_type WHERE authentication_type = $8),
   (SELECT id from camera.authentication_credentials WHERE credential_name = $9),
   $10,
   $11,
