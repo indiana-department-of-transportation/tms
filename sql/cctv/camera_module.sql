@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS camera.authentication_credentials (
   username VARCHAR(128),
   password VARCHAR(128)
 );
-ALTER TABLE camera.authentication_type TO tms_app;
+ALTER TABLE camera.authentication_type OWNER TO tms_app;
 
 CREATE TABLE IF NOT EXISTS camera.device (
   id SERIAL PRIMARY KEY,
