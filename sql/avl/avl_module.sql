@@ -14,9 +14,16 @@ CREATE TABLE IF NOT EXISTS avl.region(
 );
 ALTER TABLE avl.region OWNER TO tms_app;
 
+CREATE TABLE IF NOT EXISTS avl.vehicle_type(
+	id SERIAL PRIMARY KEY,
+	vehicle_type VARCHAR(128) NOT NULL
+);
+ALTER TABLE avl.vehicle_type OWNER TO tms_app;
+
 CREATE TABLE IF NOT EXISTS avl.vehicle(
 	id SERIAL PRIMARY KEY,
 	region_id INTEGER NOT NULL REFERENCES avl.region(id),
+	vehicle_type_id INTEGER NOT NULL REFERENCES avl.vehicle_type(id),
 	vehicle_identifier VARCHAR(128) NOT NULL,
 	license_plate VARCHAR(10) NOT NULL,
 	publish_vehicle BOOLEAN DEFAULT FALSE
@@ -47,22 +54,35 @@ INSERT INTO avl.region(
 ) RETURNING true;
 $$ language sql STRICT;
 
+CREATE OR REPLACE FUNCTION avl.add_vehicle_type(
+	"Vehicle Type" TEXT
+) RETURNS BOOLEAN AS $$
+INSERT INTO avl.vehicle_type(
+	vehicle_type
+) VALUES (
+	$1
+) RETURNING TRUE;
+$$ language sql STRICT;
+
 CREATE OR REPLACE FUNCTION avl.add_vehicle(
 	"Region Name" TEXT,
+	"Vehicle Type" TEXT,
 	"Vehicle Identifier" TEXT,
 	"License Plate" TEXT,
 	"Publish Vehicle" Bool
 ) RETURNS BOOLEAN AS $$
 INSERT INTO avl.vehicle(
 	region_id,
+	vehicle_type_id,
 	vehicle_identifier,
 	license_plate,
 	publish_vehicle
 ) VALUES (
 	(SELECT id from avl.region WHERE region = $1),
-	$2,
+	(SELECT id from avl.vehicle_type WHERE vehicle_type = $2),
 	$3,
-	$4
+	$4,
+	$5
 ) RETURNING true;
 $$ language sql STRICT;
 
@@ -99,3 +119,21 @@ INSERT INTO avl.gps_record(
 	$10
 ) RETURNING true;
 $$ language sql STRICT;
+
+CREATE OR REPLACE FUNCTION avl.get_published_vehicles() RETURNS TABLE(
+vehicle_identifier VARCHAR(128),
+license_plate VARCHAR(128),
+region VARCHAR(128),
+vehicle_type VARCHAR(128)
+) AS $$ SELECT
+vehicle.vehicle_identifier,
+vehicle.license_plate,
+region.region
+vehicle_type.vehicle_type
+FROM
+avl.vehicle
+INNER JOIN avl.region ON vehicle.region_id = region.id
+INNER JOIN avl.vehicle_type ON vehicle.vehicle_type_id = vehicle_type.id
+WHERE
+vehicle.publish_vehicle = TRUE;
+$$ LANGUAGE SQL STRICT;
