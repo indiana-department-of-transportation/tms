@@ -1,4 +1,8 @@
---- Vehicle
+-- avl_module.sql
+-- @author bfischer
+-- @copyright INDOT, 2019
+-- @license MIT
+-- Sets up the required database adn fuctions for the automated vehicle location schema 
 \connect tms
 
 CREATE SCHEMA IF NOT EXISTS avl;
@@ -24,11 +28,11 @@ CREATE TABLE IF NOT EXISTS avl.gps_record(
 	vehicle_identifier_id INTEGER NOT NULL REFERENCES avl.vehicle(id),
 	location_geometry public.geometry,
 	"timestamp" TIMESTAMP NOT NULL,
-	speed INTEGER NOT NULL,
-	heading INTEGER NOT NULL,
-	gps_quality INTEGER NOT NULL,
+	speed DOUBLE PRECISION NOT NULL,
+	heading DOUBLE PRECISION NULL,
+	gps_quality DOUBLE PRECISION NOT NULL,
 	satellites INTEGER NOT NULL,
-	altitude INTEGER NOT NULL,
+	altitude DOUBLE PRECISION NOT NULL,
 	source_ip INET
 	);
 ALTER TABLE avl.gps_record OWNER TO tms_app;
@@ -59,5 +63,39 @@ INSERT INTO avl.vehicle(
 	$2,
 	$3,
 	$4
+) RETURNING true;
+$$ language sql STRICT;
+
+CREATE OR REPLACE FUNCTION avl.add_gps_record(
+	"Vehicle Identifer" TEXT,
+	"Longitude" DOUBLE PRECISION,
+	"Latitude" DOUBLE PRECISION,
+	"Timestamp" TIMESTAMP,
+	"Speed" DOUBLE PRECISION,
+	"Heading" DOUBLE PRECISION,
+	"GPS Quality" DOUBLE PRECISION,
+	"Satellites" INTEGER,
+	"Altitude" DOUBLE PRECISION,
+	"Source IP" INET
+) RETURNS BOOLEAN AS $$
+INSERT INTO avl.gps_record(
+	vehicle_identifier_id,
+	location_geometry,
+	timestamp,
+	speed,
+	heading,gps_quality,
+	satellites,
+	altitude,
+	source_ip
+) VALUES (
+	(SELECT id from avl.vehicle WHERE vehicle_identifier = $1),
+	(SELECT ST_SetSRID(ST_Makepoint($2, $3), 4326)),
+	$4,
+	$5,
+	$6,
+	$7,
+	$8,
+	$9,
+	$10
 ) RETURNING true;
 $$ language sql STRICT;
