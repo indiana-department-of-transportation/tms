@@ -14,3 +14,7 @@ echo "Finished."
 echo "Creating CCTV tables"
 psql -U postgres -f sql/cctv/camera_module.sql
 echo "Finished"
+
+echo "Creating AVL tables"
+psql -U postgres -f sql/avl/camera_module.sql
+echo "Finished"
