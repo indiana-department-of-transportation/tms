@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS avl.gps_record(
 ALTER TABLE avl.gps_record OWNER TO tms_app;
 
 CREATE OR REPLACE FUNCTION avl.add_region(
-	"Region Name" TEXT,
+	"Region Name" TEXT
 ) RETURNS BOOLEAN AS $$
 INSERT INTO avl.region(
 	region
