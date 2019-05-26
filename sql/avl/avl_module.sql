@@ -45,7 +45,7 @@ INSERT INTO avl.region(
 ) VALUES (
 	$1
 ) RETURNING true;
-$$ langauge sql STRICT;
+$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION avl.add_vehicle(
 	"Region Name" TEXT,
