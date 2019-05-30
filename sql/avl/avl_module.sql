@@ -128,7 +128,7 @@ vehicle_type VARCHAR(128)
 ) AS $$ SELECT
 vehicle.vehicle_identifier,
 vehicle.license_plate,
-region.region
+region.region,
 vehicle_type.vehicle_type
 FROM
 avl.vehicle
