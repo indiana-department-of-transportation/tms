@@ -11,6 +11,10 @@ psql -U postgres -f sql/create_tms_user.sql
 psql -tc "ALTER DATABASE tms OWNER TO tms_app"
 echo "Finished."
 
-echo "Creating CCTV tables"
-psql -U postgres -f sql/cctv/camera_module.sql
+# echo "Creating CCTV tables"
+# psql -U postgres -f sql/cctv/camera_module.sql
+# echo "Finished"
+
+echo "Creating AVL tables"
+psql -U postgres -f sql/avl/avl_module.sql
 echo "Finished"
