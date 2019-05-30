@@ -137,3 +137,282 @@ INNER JOIN avl.vehicle_type ON vehicle.vehicle_type_id = vehicle_type.id
 WHERE
 vehicle.publish_vehicle = TRUE;
 $$ LANGUAGE SQL STRICT;
+
+-- Per vehicle functions
+CREATE OR REPLACE FUNCTION avl.get_recent_gps_by_vehicle_identifier(
+	"Vehicle Identifier" TEXT
+) RETURNS TABLE (
+	"longitude" FLOAT8,
+	"latitude" FLOAT8,
+	"timestamp" Timestamp,
+	"speed" FLOAT8,
+	"heading" FLOAT8,
+	"gps_uality" FLOAT8,
+	"satellites" INTEGER,
+	"altitude" FLOAT8
+) AS $$ SELECT
+	ST_X(gps_record.location_geometry) AS longitude,
+	ST_Y(gps_record.location_geometry) AS latitude,
+	gps_record.timestamp,
+	gps_record.speed,
+	gps_record.heading,
+	gps_record.gps_quality,
+	gps_record.satellites,
+	gps_record.altitude
+FROM
+	avl.gps_record
+WHERE
+	vehicle_identifier_id = (
+		SELECT
+			id
+		FROM
+			avl.vehicle
+		WHERE
+			vehicle_identifier = $1
+		)
+ORDER BY timestamp DESC LIMIT 1;
+$$ LANGUAGE SQL STRICT;
+
+CREATE OR REPLACE FUNCTION avl.get_recent_x_gps_by_vehicle_identifier(
+	"Vehicle Identifier" TEXT,
+	"Number of records" INTEGER
+) RETURNS TABLE (
+	"longitude" FLOAT8,
+	"latitude" FLOAT8,
+	"timestamp" Timestamp,
+	"speed" FLOAT8,
+	"heading" FLOAT8,
+	"gps_quality" FLOAT8,
+	"satellites" INTEGER,
+	"altitude" FLOAT8
+) AS $$ SELECT
+	ST_X(gps_record.location_geometry) AS longitude,
+	ST_Y(gps_record.location_geometry) AS latitude,
+	gps_record.timestamp,
+	gps_record.speed,
+	gps_record.heading,
+	gps_record.gps_quality,
+	gps_record.satellites,
+	gps_record.altitude
+FROM
+	avl.gps_record
+WHERE
+	vehicle_identifier_id = (
+		SELECT
+			id
+		FROM
+			avl.vehicle
+		WHERE
+			vehicle_identifier = $1
+		)
+ORDER BY timestamp DESC LIMIT $2;
+$$ LANGUAGE SQL STRICT;
+
+CREATE OR REPLACE FUNCTION avl.get_records_in_period_by_vehicle_identifier(
+	"Vehicle Identifier" TEXT,
+	"Begin Time" TIMESTAMP,
+	"End Time"  TIMESTAMP
+) RETURNS TABLE (
+	"longitude" FLOAT8,
+	"latitude" FLOAT8,
+	"timestamp" Timestamp,
+	"speed" FLOAT8,
+	"heading" FLOAT8,
+	"gps_quality" FLOAT8,
+	"satellites" INTEGER,
+	"altitude" FLOAT8
+) AS $$ SELECT
+	ST_X(gps_record.location_geometry) AS longitude,
+	ST_Y(gps_record.location_geometry) AS latitude,
+	timestamp,
+	speed,
+	heading,
+	gps_quality,
+	satellites,
+	altitude
+FROM
+	avl.gps_record
+WHERE
+	timestamp >= $2 AND timestamp <= $3
+	AND vehicle_identifier_id = (
+		SELECT
+			id
+		FROM
+			avl.vehicle
+		WHERE
+		 vehicle_identifier = $1)
+ORDER BY timestamp ASC;
+$$ LANGUAGE SQL STRICT;
+
+-- All vehicle functions
+CREATE OR REPLACE FUNCTION avl.get_recent_gps_active_vehicles() RETURNS TABLE (
+	"vehicle_identifier" TEXT,
+	"longitude" FLOAT8,
+	"latitude" FLOAT8,
+	"timestamp" Timestamp,
+	"speed" FLOAT8,
+	"heading" FLOAT8,
+	"gps_quality" FLOAT8,
+	"satellites" INTEGER,
+	"altitude" FLOAT8
+) AS $$ SELECT DISTINCT ON (vehicle_identifier_id)
+	vehicle.vehicle_identifier,
+	ST_X(gps_record.location_geometry) AS longitude,
+	ST_Y(gps_record.location_geometry) AS latitude,
+	gps_record.timestamp,
+	gps_record.speed,
+	gps_record.heading,
+	gps_record.gps_quality,
+	gps_record.satellites,
+	gps_record.altitude
+FROM
+	avl.gps_record
+	INNER JOIN avl.vehicle ON gps_record.vehicle_identifier_id = vehicle.id
+WHERE
+	vehicle_identifier_id IN (
+		SELECT
+			id
+		FROM
+			avl.vehicle
+		WHERE
+			publish_vehicle = TRUE
+		)
+ORDER BY vehicle_identifier_id,timestamp DESC;
+$$ LANGUAGE SQL STRICT;
+
+-- Speed Functions
+CREATE OR REPLACE FUNCTION avl.get_records_above_speed(
+	"Speed" INTEGER
+) RETURNS TABLE (
+	"vehicle_identifier" TEXT,
+	"longitude" FLOAT8,
+	"latitude" FLOAT8,
+	"timestamp" Timestamp,
+	"speed" FLOAT8,
+	"heading" FLOAT8,
+	"gps_quality" FLOAT8,
+	"satellites" INTEGER,
+	"altitude" FLOAT8
+) AS $$ SELECT
+	vehicle.vehicle_identifier,
+	ST_X(gps_record.location_geometry) AS longitude,
+	ST_Y(gps_record.location_geometry) AS latitude,
+	timestamp,
+	speed,
+	heading,
+	gps_quality,
+	satellites,
+	altitude
+FROM
+	avl.gps_record
+	INNER JOIN avl.vehicle ON gps_record.vehicle_identifier_id = vehicle.id
+WHERE
+	speed >= $1
+ORDER BY speed DESC;
+$$ LANGUAGE SQL STRICT;
+
+CREATE OR REPLACE FUNCTION avl.get_records_above_speed_in_period(
+	"Speed" INTEGER,
+	"Begin Time" TIMESTAMP,
+	"End Time"  TIMESTAMP
+) RETURNS TABLE (
+	"vehicle_identifier" TEXT,
+	"longitude" FLOAT8,
+	"latitude" FLOAT8,
+	"timestamp" Timestamp,
+	"speed" FLOAT8,
+	"heading" FLOAT8,
+	"gps_quality" FLOAT8,
+	"satellites" INTEGER,
+	"altitude" FLOAT8
+) AS $$ SELECT
+	vehicle.vehicle_identifier,
+	ST_X(gps_record.location_geometry) AS longitude,
+	ST_Y(gps_record.location_geometry) AS latitude,
+	timestamp,
+	speed,
+	heading,
+	gps_quality,
+	satellites,
+	altitude
+FROM
+	avl.gps_record
+	INNER JOIN avl.vehicle ON gps_record.vehicle_identifier_id = vehicle.id
+WHERE
+	timestamp >= $2 AND timestamp <= $3
+	AND speed >= $1
+ORDER BY speed DESC;
+$$ LANGUAGE SQL STRICT;
+
+CREATE OR REPLACE FUNCTION avl.get_records_above_speed_by_vehicle_identifier(
+	"Vehicle Identifier" TEXT,
+	"Speed" INTEGER
+) RETURNS TABLE (
+	"longitude" FLOAT8,
+	"latitude" FLOAT8,
+	"timestamp" Timestamp,
+	"speed" FLOAT8,
+	"heading" FLOAT8,
+	"gps_quality" FLOAT8,
+	"satellites" INTEGER,
+	"altitude" FLOAT8
+) AS $$ SELECT
+	ST_X(gps_record.location_geometry) AS longitude,
+	ST_Y(gps_record.location_geometry) AS latitude,
+	timestamp,
+	speed,
+	heading,
+	gps_quality,
+	satellites,
+	altitude
+FROM
+	avl.gps_record
+WHERE
+	vehicle_identifier_id = (
+		SELECT
+			id
+		FROM
+			avl.vehicle
+		WHERE
+			vehicle_identifier = $1
+		) AND speed >= $2
+ORDER BY speed DESC;
+$$ LANGUAGE SQL STRICT;
+
+CREATE OR REPLACE FUNCTION avl.get_records_above_speed_in_period_by_vehicle_identifier(
+	"Vehicle Identifier" TEXT,
+	"Speed" INTEGER,
+	"Begin Time" TIMESTAMP,
+	"End Time"  TIMESTAMP
+) RETURNS TABLE (
+	"longitude" FLOAT8,
+	"latitude" FLOAT8,
+	"timestamp" Timestamp,
+	"speed" FLOAT8,
+	"heading" FLOAT8,
+	"gps_quality" FLOAT8,
+	"satellites" INTEGER,
+	"altitude" FLOAT8
+) AS $$ SELECT
+	ST_X(gps_record.location_geometry) AS longitude,
+	ST_Y(gps_record.location_geometry) AS latitude,
+	timestamp,
+	speed,
+	heading,
+	gps_quality,
+	satellites,
+	altitude
+FROM
+	avl.gps_record
+WHERE
+	vehicle_identifier_id = (
+		SELECT
+			id
+		FROM
+			avl.vehicle
+		WHERE
+			vehicle_identifier = $1
+		) AND speed >= $2
+	AND timestamp >= $3 AND timestamp <= $4
+ORDER BY speed DESC;
+$$ LANGUAGE SQL STRICT;
