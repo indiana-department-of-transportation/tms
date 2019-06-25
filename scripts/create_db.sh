@@ -18,3 +18,7 @@ echo "Finished."
 echo "Creating AVL tables"
 psql -U postgres -f sql/avl/avl_module.sql
 echo "Finished"
+
+echo "Creating TTS tables"
+psql -U postgres -f sql/tts/tts_module.sql
+echo "Finished"
