@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS tts.route(
 	tts_sign_id INTEGER NOT NULL REFERENCES tts.sign(id),
 	tts_source_id INTEGER NOT NULL REFERENCES tts.source(id),
   route_geometry public.geometry,
+  direction FLOAT8 NOT NULL,
   destination_friendly_name VARCHAR(128),
   base_minutes INTEGER,
   publish_route BOOLEAN DEFAULT FALSE
@@ -53,10 +54,10 @@ $$ language sql STRICT;
 
 -- Begin Overloaded Functions for creating routes
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" TEXT,
+	"Traveltime Sign ID" INTEGER,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
-	"Base Minutes" TEXT,
+	"Base Minutes" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -69,7 +70,8 @@ INSERT INTO tts.route(
 	destination_friendly_name,
 	base_minutes,
 	publish_route,
-	route_geometry
+	route_geometry,
+  direction
 	) VALUES(
 	$1,
 	(SELECT id from tts.source WHERE source = $2),
@@ -81,15 +83,22 @@ INSERT INTO tts.route(
 			 ST_MakePoint($6, $7),
 			 ST_MakePoint($8, $9)
 			),4326)
-		)
-	) RETURNING true;
+		),
+  (SELECT degrees(
+    ST_Azimuth(
+      ST_MakePoint($6,$7),
+      ST_MakePoint($8, $9)
+      )
+    )
+	)
+) RETURNING true;
 	$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" TEXT,
+	"Traveltime Sign ID" INTEGER,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
-	"Base Minutes" TEXT,
+	"Base Minutes" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -104,7 +113,8 @@ INSERT INTO tts.route(
 	destination_friendly_name,
 	base_minutes,
 	publish_route,
-	route_geometry
+	route_geometry,
+  direction
 	) VALUES(
 	$1,
 	(SELECT id from tts.source WHERE source = $2),
@@ -117,15 +127,22 @@ INSERT INTO tts.route(
 			 ST_MakePoint($8, $9),
 			 ST_MakePoint($10, $11)]
 			),4326)
-		)
-	) RETURNING true;
+		),
+  (SELECT degrees(
+    ST_Azimuth(
+      ST_MakePoint($6,$7),
+      ST_MakePoint($10, $11)
+      )
+    )
+	)
+) RETURNING true;
 	$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" TEXT,
+	"Traveltime Sign ID" INTEGER,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
-	"Base Minutes" TEXT,
+	"Base Minutes" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -142,7 +159,8 @@ INSERT INTO tts.route(
 	destination_friendly_name,
 	base_minutes,
 	publish_route,
-	route_geometry
+	route_geometry,
+  direction
 	) VALUES(
 	$1,
 	(SELECT id from tts.source WHERE source = $2),
@@ -156,15 +174,22 @@ INSERT INTO tts.route(
 			 ST_MakePoint($10, $11),
 			 ST_MakePoint($12, $13)]
 			),4326)
-		)
-	) RETURNING true;
+		),
+  (SELECT degrees(
+    ST_Azimuth(
+      ST_MakePoint($6,$7),
+      ST_MakePoint($12, $13)
+      )
+    )
+	)
+) RETURNING true;
 	$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" TEXT,
+	"Traveltime Sign ID" INTEGER,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
-	"Base Minutes" TEXT,
+	"Base Minutes" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -183,7 +208,8 @@ INSERT INTO tts.route(
 	destination_friendly_name,
 	base_minutes,
 	publish_route,
-	route_geometry
+	route_geometry,
+  direction
 	) VALUES(
 	$1,
 	(SELECT id from tts.source WHERE source = $2),
@@ -198,15 +224,22 @@ INSERT INTO tts.route(
 			 ST_MakePoint($12, $13),
 			 ST_MakePoint($14, $15)]
 			),4326)
-		)
-	) RETURNING true;
+		),
+  (SELECT degrees(
+    ST_Azimuth(
+      ST_MakePoint($6,$7),
+      ST_MakePoint($14, $15)
+      )
+    )
+	)
+) RETURNING true;
 	$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" TEXT,
+	"Traveltime Sign ID" INTEGER,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
-	"Base Minutes" TEXT,
+	"Base Minutes" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -227,7 +260,8 @@ INSERT INTO tts.route(
 	destination_friendly_name,
 	base_minutes,
 	publish_route,
-	route_geometry
+	route_geometry,
+  direction
 	) VALUES(
 	$1,
 	(SELECT id from tts.source WHERE source = $2),
@@ -243,15 +277,22 @@ INSERT INTO tts.route(
 			 ST_MakePoint($14, $15),
 			 ST_MakePoint($16, $17)]
 			),4326)
-		)
-	) RETURNING true;
+		),
+  (SELECT degrees(
+    ST_Azimuth(
+      ST_MakePoint($6,$7),
+      ST_MakePoint($16, $17)
+      )
+    )
+	)
+) RETURNING true;
 	$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" TEXT,
+	"Traveltime Sign ID" INTEGER,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
-	"Base Minutes" TEXT,
+	"Base Minutes" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -274,7 +315,8 @@ INSERT INTO tts.route(
 	destination_friendly_name,
 	base_minutes,
 	publish_route,
-	route_geometry
+	route_geometry,
+  direction
 	) VALUES(
 	$1,
 	(SELECT id from tts.source WHERE source = $2),
@@ -291,15 +333,22 @@ INSERT INTO tts.route(
 			 ST_MakePoint($16, $17),
 			 ST_MakePoint($18, $19)]
 			),4326)
-		)
-	) RETURNING true;
+		),
+  (SELECT degrees(
+    ST_Azimuth(
+      ST_MakePoint($6,$7),
+      ST_MakePoint($18, $19)
+      )
+    )
+	)
+) RETURNING true;
 	$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" TEXT,
+	"Traveltime Sign ID" INTEGER,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
-	"Base Minutes" TEXT,
+	"Base Minutes" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -324,7 +373,8 @@ INSERT INTO tts.route(
 	destination_friendly_name,
 	base_minutes,
 	publish_route,
-	route_geometry
+	route_geometry,
+  direction
 	) VALUES(
 	$1,
 	(SELECT id from tts.source WHERE source = $2),
@@ -342,6 +392,13 @@ INSERT INTO tts.route(
 			 ST_MakePoint($18, $19),
 			 ST_MakePoint($20, $21)]
 			),4326)
-		)
-	) RETURNING true;
+		),
+  (SELECT degrees(
+    ST_Azimuth(
+      ST_MakePoint($6,$7),
+      ST_MakePoint($20, $21)
+      )
+    )
+	)
+) RETURNING true;
 	$$ language sql STRICT;
