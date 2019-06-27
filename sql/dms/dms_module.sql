@@ -66,6 +66,16 @@ CREATE TABLE IF NOT EXISTS dms.device(
 );
 ALTER TABLE dms.device OWNER TO tms_app;
 
+-- Insert function for type
+CREATE OR REPLACE FUNCTION dms.add_type(
+  "Type" TEXT
+) RETURNS BOOLEAN AS $$
+  INSERT INTO dms.type(
+    type
+) VALUES(
+  $1
+) RETURNING true;
+$$ LANGUAGE SQL STRICT;
 
 -- Insert function for manufacturer
 CREATE OR REPLACE FUNCTION dms.add_manufacturer(
