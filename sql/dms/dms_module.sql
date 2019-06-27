@@ -14,6 +14,12 @@ CREATE TABLE IF NOT EXISTS dms.type(
 );
 ALTER TABLE dms.type OWNER TO tms_app;
 
+CREATE TABLE IF NOT EXISTS dms.driver(
+  id SERIAL PRIMARY KEY,
+  driver VARCHAR(128) NOT NULL
+);
+ALTER TABLE dms.driver OWNER TO tms_app;
+
 CREATE TABLE IF NOT EXISTS dms.manufacturer(
  id SERIAL PRIMARY KEY,
  manufacturer VARCHAR(128) NOT NULL
@@ -23,6 +29,7 @@ ALTER TABLE dms.manufacturer OWNER TO tms_app;
 CREATE TABLE IF NOT EXISTS dms.model(
   id SERIAL PRIMARY KEY,
   manufacturer_id INTEGER NOT NULL REFERENCES dms.manufacturer(id),
+  driver_id INTEGER NOT NULL REFERENCES dms.driver(id),
   model VARCHAR(128) NOT NULL
 );
 ALTER TABLE dms.model OWNER TO tms_app;
@@ -70,17 +77,31 @@ CREATE OR REPLACE FUNCTION dms.add_manufacturer(
 ) RETURNING true;
 $$ language sql STRICT;
 
+-- Insert function for driver
+CREATE OR REPLACE FUNCTION dms.add_driver(
+  "Driver" TEXT
+) RETURNS BOOLEAN AS $$
+  INSERT INTO dms.driver(
+    driver
+) VALUES(
+  $1
+) RETURNING true;
+$$ language sql strict;
+
 -- Insert function for model
 CREATE OR REPLACE FUNCTION dms.add_model (
   "Manufacturer" TEXT,
+  "Driver" TEXT,
   "Model" TEXT
 )  RETURNS BOOLEAN AS $$
   INSERT INTO dms.model(
     manufacturer_id,
+    driver_id,
     model
 ) VALUES(
   (SELECT id from dms.manufacturer WHERE manufacturer = $1),
-  $2
+  (SELECT id from dms.driver WHERE driver = $2),
+  $3
   ) RETURNING true;
 $$ language sql STRICT;
 
