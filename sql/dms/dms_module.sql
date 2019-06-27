@@ -51,6 +51,7 @@ ALTER TABLE dms.authentication_type OWNER TO tms_app;
 CREATE TABLE IF NOT EXISTS dms.device(
 	id SERIAL PRIMARY KEY,
 	location_geometry public.geometry,
+  direction VARCHAR(20),
 	type_id INTEGER NOT NULL REFERENCES dms.type(id),
 	manufacturer_id INTEGER NOT NULL REFERENCES dms.manufacturer(id),
   model_id INTEGER  NOT NULL REFERENCES dms.model(id),
@@ -136,6 +137,7 @@ $$ language sql STRICT;
 CREATE OR REPLACE FUNCTION dms.add_device(
 	"Longitude" FLOAT8,
 	"Latitude" FLOAT8,
+  "Direction" TEXT,
 	"Type" Text,
 	"Manufacturer" TEXT,
 	"Model" TEXT,
@@ -150,7 +152,8 @@ CREATE OR REPLACE FUNCTION dms.add_device(
 	) RETURNS BOOLEAN AS $$
 INSERT INTO dms.device(
 	location_geometry,
-	type_id,
+	direction,
+  type_id,
 	manufacturer_id,
 	model_id,
 	authentication_type_id,
@@ -163,17 +166,18 @@ INSERT INTO dms.device(
 	sign_online
 ) VALUES (
 	(SELECT ST_SetSRID(St_Makepoint($1, $2),4326)),
-	(SELECT id FROM dms.type WHERE type = $3),
-	(SELECT id from dms.manufacturer WHERE manufacturer = $4),
-  (SELECT id from dms.model WHERE model = $5 and manufacturer_id = (
-    SELECT id from dms.manufacturer WHERE manufacturer = $4)),
-  (SELECT id from dms.authentication_type WHERE authentication_type = $6),
-  (SELECT id from dms.authentication_credentials WHERE credential_name = $7),
-  $8,
+  $3
+	(SELECT id FROM dms.type WHERE type = $4),
+	(SELECT id from dms.manufacturer WHERE manufacturer = $5),
+  (SELECT id from dms.model WHERE model = $6 and manufacturer_id = (
+    SELECT id from dms.manufacturer WHERE manufacturer = $5)),
+  (SELECT id from dms.authentication_type WHERE authentication_type = $7),
+  (SELECT id from dms.authentication_credentials WHERE credential_name = $8),
   $9,
   $10,
   $11,
   $12,
-  $13
+  $13,
+  $14
 ) RETURNING true;
 $$ language sql STRICT;
