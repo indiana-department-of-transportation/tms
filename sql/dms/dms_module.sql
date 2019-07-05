@@ -176,7 +176,7 @@ INSERT INTO dms.device(
 	sign_online
 ) VALUES (
 	(SELECT ST_SetSRID(St_Makepoint($1, $2),4326)),
-  $3
+  $3,
 	(SELECT id FROM dms.type WHERE type = $4),
 	(SELECT id from dms.manufacturer WHERE manufacturer = $5),
   (SELECT id from dms.model WHERE model = $6 and manufacturer_id = (
