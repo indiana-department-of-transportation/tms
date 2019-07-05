@@ -22,3 +22,7 @@ echo "Finished"
 echo "Creating DMS tables"
 psql -U postgres -f sql/dms/dms_module.sql
 echo "Finished"
+
+echo "Creating TTS tables"
+psql -U postgres -f sql/tts/tts_module.sql
+echo "Finished"
