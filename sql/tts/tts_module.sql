@@ -1,4 +1,4 @@
--- avl_module.sql
+-- tts_module.sql
 -- @author bfischer
 -- @copyright INDOT, 2019
 -- @license MIT
