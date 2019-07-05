@@ -8,12 +8,6 @@
 CREATE SCHEMA IF NOT EXISTS tts;
 ALTER SCHEMA tts owner TO tms_app;
 
-CREATE TABLE IF NOT EXISTS tts.sign(
-	id SERIAL PRIMARY KEY,
-	dms_device_id INTEGER NOT NULL REFERENCES dms.device(id)
-);
-ALTER TABLE tts.sign OWNER TO tms_app;
-
 CREATE TABLE IF NOT EXISTS tts.source(
 	id SERIAL PRIMARY KEY,
 	source VARCHAR(128) NOT NULL
@@ -22,25 +16,16 @@ ALTER TABLE tts.source OWNER TO tms_app;
 
 CREATE TABLE IF NOT EXISTS tts.route(
 	id SERIAL PRIMARY KEY,
-	tts_sign_id INTEGER NOT NULL REFERENCES tts.sign(id),
+	dms_device_id INTEGER NOT NULL REFERENCES dms.device(id),
 	tts_source_id INTEGER NOT NULL REFERENCES tts.source(id),
   route_geometry public.geometry,
   direction FLOAT8 NOT NULL,
   destination_friendly_name VARCHAR(128),
   base_minutes INTEGER,
+  sign_position INTEGER,
   publish_route BOOLEAN DEFAULT FALSE
 );
 ALTER TABLE tts.route OWNER TO tms_app;
-
-CREATE OR REPLACE FUNCTION tts.add_sign(
-	"DMS Device ID" INTEGER
-	) RETURNS BOOLEAN AS $$
-INSERT INTO tts.sign(
-	dms_device_id
-) VALUES (
-	$1
-) RETURNING true;
-$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION tts.add_source(
 	"Source" TEXT
@@ -54,10 +39,11 @@ $$ language sql STRICT;
 
 -- Begin Overloaded Functions for creating routes
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" INTEGER,
+	"DMS Friendly Name" TEXT,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
 	"Base Minutes" INTEGER,
+	"Sign Position" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -65,29 +51,31 @@ CREATE OR REPLACE FUNCTION tts.add_route(
 	"Destination Latitude" FLOAT8
 ) RETURNS BOOLEAN AS $$
 INSERT INTO tts.route(
-	tts_sign_id,
+	dms_device_id,
 	tts_source_id,
 	destination_friendly_name,
 	base_minutes,
+	sign_position,
 	publish_route,
 	route_geometry,
   direction
 	) VALUES(
-	$1,
+	(SELECT id FROM  dms.device WHERE friendly_name = $1),
 	(SELECT id from tts.source WHERE source = $2),
 	$3,
 	$4,
 	$5,
+	$6,
 	(SELECT ST_SetSRID(
 		ST_MakeLine(
-			 ST_MakePoint($6, $7),
-			 ST_MakePoint($8, $9)
+			 ST_MakePoint($7, $8),
+			 ST_MakePoint($9, $10)
 			),4326)
 		),
   (SELECT degrees(
     ST_Azimuth(
-      ST_MakePoint($6,$7),
-      ST_MakePoint($8, $9)
+      ST_MakePoint($7,$8),
+      ST_MakePoint($9, $10)
       )
     )
 	)
@@ -95,10 +83,11 @@ INSERT INTO tts.route(
 	$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" INTEGER,
+	"DMS Friendly Name" TEXT,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
 	"Base Minutes" INTEGER,
+	"Sign Position" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -108,30 +97,32 @@ CREATE OR REPLACE FUNCTION tts.add_route(
 	"Destination Latitude" FLOAT8
 ) RETURNS BOOLEAN AS $$
 INSERT INTO tts.route(
-	tts_sign_id,
+	dms_device_id,
 	tts_source_id,
 	destination_friendly_name,
 	base_minutes,
+	sign_position,
 	publish_route,
 	route_geometry,
   direction
 	) VALUES(
-	$1,
+	(SELECT id FROM  dms.device WHERE friendly_name = $1),
 	(SELECT id from tts.source WHERE source = $2),
 	$3,
 	$4,
 	$5,
+	$6,
 	(SELECT ST_SetSRID(
 		ST_MakeLine(ARRAY[
-			 ST_MakePoint($6, $7),
-			 ST_MakePoint($8, $9),
-			 ST_MakePoint($10, $11)]
+			 ST_MakePoint($7, $8),
+			 ST_MakePoint($9, $10),
+			 ST_MakePoint($11, $12)]
 			),4326)
 		),
   (SELECT degrees(
     ST_Azimuth(
-      ST_MakePoint($6,$7),
-      ST_MakePoint($10, $11)
+      ST_MakePoint($7,$8),
+      ST_MakePoint($11, $12)
       )
     )
 	)
@@ -139,10 +130,11 @@ INSERT INTO tts.route(
 	$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" INTEGER,
+	"DMS Friendly Name" TEXT,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
 	"Base Minutes" INTEGER,
+	"Sign Position" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -154,31 +146,33 @@ CREATE OR REPLACE FUNCTION tts.add_route(
 	"Destination Latitude" FLOAT8
 ) RETURNS BOOLEAN AS $$
 INSERT INTO tts.route(
-	tts_sign_id,
+	dms_device_id,
 	tts_source_id,
 	destination_friendly_name,
 	base_minutes,
+	sign_position,
 	publish_route,
 	route_geometry,
   direction
 	) VALUES(
-	$1,
+	(SELECT id FROM  dms.device WHERE friendly_name = $1),
 	(SELECT id from tts.source WHERE source = $2),
 	$3,
 	$4,
 	$5,
+	$6,
 	(SELECT ST_SetSRID(
 		ST_MakeLine(ARRAY[
-			 ST_MakePoint($6, $7),
-			 ST_MakePoint($8, $9),
-			 ST_MakePoint($10, $11),
-			 ST_MakePoint($12, $13)]
+			 ST_MakePoint($7, $8),
+			 ST_MakePoint($9, $10),
+			 ST_MakePoint($11, $12),
+			 ST_MakePoint($13, $14)]
 			),4326)
 		),
   (SELECT degrees(
     ST_Azimuth(
-      ST_MakePoint($6,$7),
-      ST_MakePoint($12, $13)
+      ST_MakePoint($7,$8),
+      ST_MakePoint($13, $14)
       )
     )
 	)
@@ -186,10 +180,11 @@ INSERT INTO tts.route(
 	$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" INTEGER,
+	"DMS Friendly Name" TEXT,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
 	"Base Minutes" INTEGER,
+	"Sign Position" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -203,32 +198,34 @@ CREATE OR REPLACE FUNCTION tts.add_route(
 	"Destination Latitude" FLOAT8
 ) RETURNS BOOLEAN AS $$
 INSERT INTO tts.route(
-	tts_sign_id,
+	dms_device_id,
 	tts_source_id,
 	destination_friendly_name,
 	base_minutes,
+	sign_position,
 	publish_route,
 	route_geometry,
   direction
 	) VALUES(
-	$1,
+	(SELECT id FROM  dms.device WHERE friendly_name = $1),
 	(SELECT id from tts.source WHERE source = $2),
 	$3,
 	$4,
 	$5,
+	$6,
 	(SELECT ST_SetSRID(
 		ST_MakeLine(ARRAY[
-			 ST_MakePoint($6, $7),
-			 ST_MakePoint($8, $9),
-			 ST_MakePoint($10, $11),
-			 ST_MakePoint($12, $13),
-			 ST_MakePoint($14, $15)]
+			 ST_MakePoint($7, $8),
+			 ST_MakePoint($9, $10),
+			 ST_MakePoint($11, $12),
+			 ST_MakePoint($13, $14),
+			 ST_MakePoint($15, $16)]
 			),4326)
 		),
   (SELECT degrees(
     ST_Azimuth(
-      ST_MakePoint($6,$7),
-      ST_MakePoint($14, $15)
+      ST_MakePoint($7,$8),
+      ST_MakePoint($15, $16)
       )
     )
 	)
@@ -236,10 +233,11 @@ INSERT INTO tts.route(
 	$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" INTEGER,
+	"DMS Friendly Name" TEXT,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
 	"Base Minutes" INTEGER,
+	"Sign Position" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -255,33 +253,35 @@ CREATE OR REPLACE FUNCTION tts.add_route(
 	"Destination Latitude" FLOAT8
 ) RETURNS BOOLEAN AS $$
 INSERT INTO tts.route(
-	tts_sign_id,
+	dms_device_id,
 	tts_source_id,
 	destination_friendly_name,
 	base_minutes,
+	sign_position,
 	publish_route,
 	route_geometry,
   direction
 	) VALUES(
-	$1,
+	(SELECT id FROM  dms.device WHERE friendly_name = $1),
 	(SELECT id from tts.source WHERE source = $2),
 	$3,
 	$4,
 	$5,
+	$6,
 	(SELECT ST_SetSRID(
 		ST_MakeLine(ARRAY[
-			 ST_MakePoint($6, $7),
-			 ST_MakePoint($8, $9),
-			 ST_MakePoint($10, $11),
-			 ST_MakePoint($12, $13),
-			 ST_MakePoint($14, $15),
-			 ST_MakePoint($16, $17)]
+			 ST_MakePoint($7, $8),
+			 ST_MakePoint($9, $10),
+			 ST_MakePoint($11, $12),
+			 ST_MakePoint($13, $14),
+			 ST_MakePoint($15, $16),
+			 ST_MakePoint($17, $18)]
 			),4326)
 		),
   (SELECT degrees(
     ST_Azimuth(
-      ST_MakePoint($6,$7),
-      ST_MakePoint($16, $17)
+      ST_MakePoint($7,$8),
+      ST_MakePoint($17, $18)
       )
     )
 	)
@@ -289,10 +289,11 @@ INSERT INTO tts.route(
 	$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" INTEGER,
+	"DMS Friendly Name" TEXT,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
 	"Base Minutes" INTEGER,
+	"Sign Position" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -310,34 +311,36 @@ CREATE OR REPLACE FUNCTION tts.add_route(
 	"Destination Latitude" FLOAT8
 ) RETURNS BOOLEAN AS $$
 INSERT INTO tts.route(
-	tts_sign_id,
+	dms_device_id,
 	tts_source_id,
 	destination_friendly_name,
 	base_minutes,
+	sign_position,
 	publish_route,
 	route_geometry,
   direction
 	) VALUES(
-	$1,
+	(SELECT id FROM  dms.device WHERE friendly_name = $1),
 	(SELECT id from tts.source WHERE source = $2),
 	$3,
 	$4,
 	$5,
+	$6,
 	(SELECT ST_SetSRID(
 		ST_MakeLine(ARRAY[
-			 ST_MakePoint($6, $7),
-			 ST_MakePoint($8, $9),
-			 ST_MakePoint($10, $11),
-			 ST_MakePoint($12, $13),
-			 ST_MakePoint($14, $15),
-			 ST_MakePoint($16, $17),
-			 ST_MakePoint($18, $19)]
+			 ST_MakePoint($7, $8),
+			 ST_MakePoint($9, $10),
+			 ST_MakePoint($11, $12),
+			 ST_MakePoint($13, $14),
+			 ST_MakePoint($15, $16),
+			 ST_MakePoint($17, $18),
+			 ST_MakePoint($19, $20)]
 			),4326)
 		),
   (SELECT degrees(
     ST_Azimuth(
-      ST_MakePoint($6,$7),
-      ST_MakePoint($18, $19)
+      ST_MakePoint($7,$8),
+      ST_MakePoint($19, $20)
       )
     )
 	)
@@ -345,10 +348,11 @@ INSERT INTO tts.route(
 	$$ language sql STRICT;
 
 CREATE OR REPLACE FUNCTION tts.add_route(
-	"Traveltime Sign ID" INTEGER,
+	"DMS Friendly Name" TEXT,
 	"Traveltime Source" TEXT,
 	"Destination Friendly Name" TEXT,
 	"Base Minutes" INTEGER,
+	"Sign Position" INTEGER,
 	"Publish Route" BOOLEAN,
 	"Origin Longitude" FLOAT8,
 	"Origin Latitude" FLOAT8,
@@ -368,37 +372,62 @@ CREATE OR REPLACE FUNCTION tts.add_route(
 	"Destination Latitude" FLOAT8
 ) RETURNS BOOLEAN AS $$
 INSERT INTO tts.route(
-	tts_sign_id,
+	dms_device_id,
 	tts_source_id,
 	destination_friendly_name,
 	base_minutes,
+	sign_position,
 	publish_route,
 	route_geometry,
   direction
 	) VALUES(
-	$1,
+	(SELECT id FROM  dms.device WHERE friendly_name = $1),
 	(SELECT id from tts.source WHERE source = $2),
 	$3,
 	$4,
 	$5,
+	$6,
 	(SELECT ST_SetSRID(
 		ST_MakeLine(ARRAY[
-			 ST_MakePoint($6, $7),
-			 ST_MakePoint($8, $9),
-			 ST_MakePoint($10, $11),
-			 ST_MakePoint($12, $13),
-			 ST_MakePoint($14, $15),
-			 ST_MakePoint($16, $17),
-			 ST_MakePoint($18, $19),
-			 ST_MakePoint($20, $21)]
+			 ST_MakePoint($7, $8),
+			 ST_MakePoint($9, $10),
+			 ST_MakePoint($11, $12),
+			 ST_MakePoint($13, $14),
+			 ST_MakePoint($15, $16),
+			 ST_MakePoint($17, $18),
+			 ST_MakePoint($19, $20),
+			 ST_MakePoint($21, $22)]
 			),4326)
 		),
   (SELECT degrees(
     ST_Azimuth(
-      ST_MakePoint($6,$7),
-      ST_MakePoint($20, $21)
+      ST_MakePoint($7,$8),
+      ST_MakePoint($21, $22)
       )
     )
 	)
 ) RETURNING true;
 	$$ language sql STRICT;
+
+-- Retrieve route
+CREATE OR REPLACE FUNCTION tts.get_published_routes()
+RETURNS TABLE (
+	dms_friendly_name VARCHAR(128),
+	direction FLOAT8,
+	destination_friendly_name VARCHAR(128),
+	base_minutes INTEGER,
+	sign_position INTEGER,
+	route_geometry public.geometry
+) AS $$ SELECT
+	dms.device.friendly_name,
+	route.direction,
+	route.destination_friendly_name,
+	route.base_minutes,
+	route.sign_position,
+	route.route_geometry
+FROM
+	tts.route
+	INNER JOIN dms.device ON route.dms_device_id = device.id
+WHERE
+	publish_route = TRUE;
+$$ LANGUAGE SQL STRICT;
