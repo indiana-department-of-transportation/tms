@@ -15,9 +15,9 @@ echo "Creating Public Functions"
 psql -U postgres -f sql/public/functions.sql
 echo "Finished"
 
-# echo "Creating CCTV tables"
-# psql -U postgres -f sql/cctv/camera_module.sql
-# echo "Finished"
+echo "Creating CCTV tables"
+psql -U postgres -f sql/cctv/camera_module.sql
+echo "Finished"
 
 echo "Creating AVL tables"
 psql -U postgres -f sql/avl/avl_module.sql
