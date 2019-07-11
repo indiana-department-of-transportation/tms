@@ -317,3 +317,113 @@ WHERE
   device.publish_stream = TRUE 
   OR device.publish_snapshot = TRUE;
 $$ LANGUAGE SQL STRICT;
+
+
+-- Begin Monitor Related SQL
+CREATE TABLE IF NOT EXISTS camera.video_driver(
+ id SERIAL PRIMARY KEY,
+ driver VARCHAR(128) NOT NULL
+);
+ALTER TABLE camera.video_driver OWNER to tms_app;
+
+-- Conflicted if this table should reside in cctv, or public.
+-- Could be used in permission management
+CREATE TABLE IF NOT EXISTS camera.monitor_group(
+ id SERIAL PRIMARY KEY,
+ name VARCHAR(128) NOT NULL,
+ location VARCHAR(128)
+);
+ALTER TABLE camera.monitor_group OWNER to tms_app;
+
+CREATE TABLE IF NOT EXISTS camera.monitor_layout(
+ id SERIAL PRIMARY KEY,
+ name VARCHAR(128) NOT NULL,
+ description VARCHAR(128) NOT NULL
+);
+ALTER TABLE camera.monitor_layout OWNER to tms_app;
+
+CREATE TABLE IF NOT EXISTS camera.monitor(
+ id SERIAL PRIMARY KEY,
+ video_driver_id INTEGER NOT NULL REFERENCES camera.video_driver(id),
+ monitor_group_id INTEGER NOT NULL REFERENCES camera.monitor_group(id),
+ current_layout_id INTEGER REFERENCES camera.monitor_layout(id),
+ friendly_name VARCHAR(128) NOT NULL,
+ location_description VARCHAR(128),
+ online BOOLEAN DEFAULT FALSE,
+ publish_monitor BOOLEAN DEFAULT FALSE
+ );
+ALTER TABLE camera.monitor OWNER to tms_app;
+
+CREATE TABLE IF NOT EXISTS camera.active_camera(
+  id SERIAL PRIMARY KEY,
+  position INTEGER NOT NULL,
+  device_id INTEGER NOT NULL REFERENCES camera.device(id),
+  device_channel INTEGER NOT NULL REFERENCES camera.channel(id)
+  );
+ALTER TABLE camera.active_camera OWNER to tms_app;
+
+CREATE OR REPLACE FUNCTION camera.add_video_driver(
+  "Driver Name" TEXT
+) RETURNS BOOLEAN AS $$
+  INSERT INTO camera.video_driver (
+  driver
+) VALUES (
+  $1
+) RETURNING TRUE;
+$$ language SQL STRICT;
+
+CREATE OR REPLACE FUNCTION camera.add_monitor_group(
+  "Name" TEXT,
+  "Location" TEXT
+) RETURNS BOOLEAN AS $$
+  INSERT INTO camera.monitor_group(
+  name,
+  location
+) VALUES (
+  $1,
+  $2
+) RETURNING TRUE;
+$$ LANGUAGE SQL STRICT;
+
+CREATE OR REPLACE FUNCTION camera.add_monitor_layout(
+  "Name" TEXT,
+  "Description" TEXT
+) RETURNS BOOLEAN AS $$
+  INSERT INTO camera.monitor_layout(
+  name,
+  description
+) VALUES (
+  $1,
+  $2
+) RETURNING TRUE;
+$$ LANGUAGE SQL STRICT;
+
+CREATE OR REPLACE FUNCTION camera.add_monitor(
+  "Video Driver Name" TEXT,
+  "Monitor Group Name" TEXT,
+  "Current Layout Name" TEXT,
+  "Friendly Name" TEXT,
+  "Location Description" TEXT,
+  "Online" BOOL,
+  "Publish" BOOL
+) RETURNS BOOLEAN AS $$
+ INSERT INTO camera.monitor(
+  video_driver_id,
+  monitor_group_id,
+  current_layout_id,
+  friendly_name,
+  location_description,
+  online,
+  publish_monitor
+ ) VALUES (
+  (SELECT id from camera.video_driver WHERE driver = $1),
+  (SELECT id from camera.monitor_group WHERE name = $2),
+  (SELECT id from camera.monitor_layout WHERE name = $3),
+  $4,
+  $5,
+  $6,
+  $7
+) RETURNING TRUE;
+$$ LANGUAGE SQL STRICT;
+
+-- ToDO: create functions for adding and updating currently active camera.
