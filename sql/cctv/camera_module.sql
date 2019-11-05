@@ -287,7 +287,8 @@ CREATE OR REPLACE FUNCTION camera.get_all_cameras () RETURNS TABLE (
     description VARCHAR ( 128 ),
     camera_number INT4,
     publish_stream BOOL,
-    publish_snapshot BOOL 
+    publish_snapshot BOOL,
+    latency INT4
   ) AS $$ SELECT
   ST_X ( device.location_geometry ) AS longitude,
   ST_Y ( device.location_geometry ) AS latitude,
@@ -308,7 +309,8 @@ CREATE OR REPLACE FUNCTION camera.get_all_cameras () RETURNS TABLE (
   device.description,
   device.camera_number,
   device.publish_stream,
-  device.publish_snapshot 
+  device.publish_snapshot,
+  device.latency
 FROM
   camera.device
   INNER JOIN camera.control ON device.control_id = control.id
@@ -365,7 +367,7 @@ ALTER TABLE camera.monitor OWNER to tms_app;
 
 CREATE TABLE IF NOT EXISTS camera.active_camera(
   id SERIAL PRIMARY KEY,
-  monitor_id INTEGER NOT NULL REFERENCES camera.monitor(id)
+  monitor_id INTEGER NOT NULL REFERENCES camera.monitor(id),
   position INTEGER NOT NULL,
   device_id INTEGER NOT NULL REFERENCES camera.device(id),
   device_channel INTEGER NOT NULL REFERENCES camera.channel(id)
@@ -412,6 +414,11 @@ CREATE OR REPLACE FUNCTION camera.add_monitor(
   "Video Driver Name" TEXT,
   "Monitor Group Name" TEXT,
   "Current Layout Name" TEXT,
+  "Authentication Type Name" TEXT,
+  "Credential Name" TEXT
+  "IPv4 Address" INET,
+  "IPv6 Address" INET,
+  "Multicast Address" INET, 
   "Friendly Name" TEXT,
   "Location Description" TEXT,
   "Online" BOOL,
@@ -421,6 +428,11 @@ CREATE OR REPLACE FUNCTION camera.add_monitor(
   video_driver_id,
   monitor_group_id,
   current_layout_id,
+  authentication_type_id,
+  authentication_credentials_id,
+  ipv4,
+  ipv6,
+  multicast,
   friendly_name,
   location_description,
   online,
@@ -429,11 +441,14 @@ CREATE OR REPLACE FUNCTION camera.add_monitor(
   (SELECT id from camera.video_driver WHERE driver = $1),
   (SELECT id from camera.monitor_group WHERE name = $2),
   (SELECT id from camera.monitor_layout WHERE name = $3),
-  $4,
-  $5,
+  (SELECT id from camera.authentication_type WHERE authentication_type = $4)
+  (SELECT id from camera.authentication_credentials WHERE credential_name =$5)
   $6,
-  $7
+  $7,
+  $8,
+  $9
 ) RETURNING TRUE;
 $$ LANGUAGE SQL STRICT;
 
 -- ToDO: create functions for adding and updating currently active camera.
+-- Create function for updating current monitor layout
