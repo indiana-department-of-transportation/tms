@@ -85,7 +85,8 @@ CREATE TABLE IF NOT EXISTS camera.device (
   camera_number INTEGER NOT NULL UNIQUE,
   physical_number INTEGER NOT NULL,
   publish_stream BOOLEAN DEFAULT FALSE,
-  publish_snapshot BOOLEAN DEFAULT FALSE
+  publish_snapshot BOOLEAN DEFAULT FALSE,
+  latency INTEGER NOT NULL
 );
 ALTER TABLE camera.device OWNER TO tms_app;
 
@@ -161,7 +162,8 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   "Camera number" int4,
   "Physical number" int4,
   "Publish stream" bool,
-  "Publish snapshot" bool
+  "Publish snapshot" bool,
+  "Latency" int4
 ) RETURNS BOOLEAN AS $$
   INSERT INTO camera.device (
     location_geometry,
@@ -180,7 +182,8 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
     camera_number,
     physical_number,
     publish_stream,
-    publish_snapshot
+    publish_snapshot,
+    latency
 ) VALUES (
   (SELECT ST_SetSRID(ST_Makepoint($1, $2),4326)),
   (SELECT id from camera.control WHERE control_protocol = $3),
@@ -201,7 +204,8 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   $15,
   $16,
   $17,
-  $18
+  $18,
+  $19
 ) RETURNING true;
 $$ language sql STRICT;
 
@@ -283,7 +287,8 @@ CREATE OR REPLACE FUNCTION camera.get_all_cameras () RETURNS TABLE (
     description VARCHAR ( 128 ),
     camera_number INT4,
     publish_stream BOOL,
-    publish_snapshot BOOL 
+    publish_snapshot BOOL,
+    latency INT4
   ) AS $$ SELECT
   ST_X ( device.location_geometry ) AS longitude,
   ST_Y ( device.location_geometry ) AS latitude,
@@ -304,7 +309,8 @@ CREATE OR REPLACE FUNCTION camera.get_all_cameras () RETURNS TABLE (
   device.description,
   device.camera_number,
   device.publish_stream,
-  device.publish_snapshot 
+  device.publish_snapshot,
+  device.latency
 FROM
   camera.device
   INNER JOIN camera.control ON device.control_id = control.id
@@ -347,6 +353,11 @@ CREATE TABLE IF NOT EXISTS camera.monitor(
  video_driver_id INTEGER NOT NULL REFERENCES camera.video_driver(id),
  monitor_group_id INTEGER NOT NULL REFERENCES camera.monitor_group(id),
  current_layout_id INTEGER REFERENCES camera.monitor_layout(id),
+ authentication_type_id INTEGER NOT NULL REFERENCES camera.authentication_type(id),
+ authentication_credentials_id INTEGER REFERENCES camera.authentication_credentials(id),
+ ipv4 INET,
+ ipv6 INET,
+ multicast INET,
  friendly_name VARCHAR(128) NOT NULL,
  location_description VARCHAR(128),
  online BOOLEAN DEFAULT FALSE,
@@ -356,6 +367,7 @@ ALTER TABLE camera.monitor OWNER to tms_app;
 
 CREATE TABLE IF NOT EXISTS camera.active_camera(
   id SERIAL PRIMARY KEY,
+  monitor_id INTEGER NOT NULL REFERENCES camera.monitor(id),
   position INTEGER NOT NULL,
   device_id INTEGER NOT NULL REFERENCES camera.device(id),
   device_channel INTEGER NOT NULL REFERENCES camera.channel(id)
@@ -402,6 +414,11 @@ CREATE OR REPLACE FUNCTION camera.add_monitor(
   "Video Driver Name" TEXT,
   "Monitor Group Name" TEXT,
   "Current Layout Name" TEXT,
+  "Authentication Type Name" TEXT,
+  "Credential Name" TEXT
+  "IPv4 Address" INET,
+  "IPv6 Address" INET,
+  "Multicast Address" INET, 
   "Friendly Name" TEXT,
   "Location Description" TEXT,
   "Online" BOOL,
@@ -411,6 +428,11 @@ CREATE OR REPLACE FUNCTION camera.add_monitor(
   video_driver_id,
   monitor_group_id,
   current_layout_id,
+  authentication_type_id,
+  authentication_credentials_id,
+  ipv4,
+  ipv6,
+  multicast,
   friendly_name,
   location_description,
   online,
@@ -419,11 +441,14 @@ CREATE OR REPLACE FUNCTION camera.add_monitor(
   (SELECT id from camera.video_driver WHERE driver = $1),
   (SELECT id from camera.monitor_group WHERE name = $2),
   (SELECT id from camera.monitor_layout WHERE name = $3),
-  $4,
-  $5,
+  (SELECT id from camera.authentication_type WHERE authentication_type = $4)
+  (SELECT id from camera.authentication_credentials WHERE credential_name =$5)
   $6,
-  $7
+  $7,
+  $8,
+  $9
 ) RETURNING TRUE;
 $$ LANGUAGE SQL STRICT;
 
 -- ToDO: create functions for adding and updating currently active camera.
+-- Create function for updating current monitor layout
