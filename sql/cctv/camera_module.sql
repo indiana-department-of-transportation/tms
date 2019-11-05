@@ -85,7 +85,8 @@ CREATE TABLE IF NOT EXISTS camera.device (
   camera_number INTEGER NOT NULL UNIQUE,
   physical_number INTEGER NOT NULL,
   publish_stream BOOLEAN DEFAULT FALSE,
-  publish_snapshot BOOLEAN DEFAULT FALSE
+  publish_snapshot BOOLEAN DEFAULT FALSE,
+  latency INTEGER NOT NULL
 );
 ALTER TABLE camera.device OWNER TO tms_app;
 
@@ -161,7 +162,8 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   "Camera number" int4,
   "Physical number" int4,
   "Publish stream" bool,
-  "Publish snapshot" bool
+  "Publish snapshot" bool,
+  "Latency" int4
 ) RETURNS BOOLEAN AS $$
   INSERT INTO camera.device (
     location_geometry,
@@ -180,7 +182,8 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
     camera_number,
     physical_number,
     publish_stream,
-    publish_snapshot
+    publish_snapshot,
+    latency
 ) VALUES (
   (SELECT ST_SetSRID(ST_Makepoint($1, $2),4326)),
   (SELECT id from camera.control WHERE control_protocol = $3),
@@ -201,7 +204,8 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   $15,
   $16,
   $17,
-  $18
+  $18,
+  $19
 ) RETURNING true;
 $$ language sql STRICT;
 
