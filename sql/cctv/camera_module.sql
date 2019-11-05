@@ -351,6 +351,11 @@ CREATE TABLE IF NOT EXISTS camera.monitor(
  video_driver_id INTEGER NOT NULL REFERENCES camera.video_driver(id),
  monitor_group_id INTEGER NOT NULL REFERENCES camera.monitor_group(id),
  current_layout_id INTEGER REFERENCES camera.monitor_layout(id),
+ authentication_type_id INTEGER NOT NULL REFERENCES camera.authentication_type(id),
+ authentication_credentials_id INTEGER REFERENCES camera.authentication_credentials(id),
+ ipv4 INET,
+ ipv6 INET,
+ multicast INET,
  friendly_name VARCHAR(128) NOT NULL,
  location_description VARCHAR(128),
  online BOOLEAN DEFAULT FALSE,
@@ -360,6 +365,7 @@ ALTER TABLE camera.monitor OWNER to tms_app;
 
 CREATE TABLE IF NOT EXISTS camera.active_camera(
   id SERIAL PRIMARY KEY,
+  monitor_id INTEGER NOT NULL REFERENCES camera.monitor(id)
   position INTEGER NOT NULL,
   device_id INTEGER NOT NULL REFERENCES camera.device(id),
   device_channel INTEGER NOT NULL REFERENCES camera.channel(id)
