@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS camera.device (
   model_id INTEGER  NOT NULL REFERENCES camera.model(id),
   type_id INTEGER NOT NULL REFERENCES camera.type(id),
   snapshot_channel_id INTEGER NOT NULL REFERENCES camera.channel(id),
+  default_stream_channel_id INTEGER NOT NULL REFERENCES camera.channel(id),
   authentication_type_id INTEGER NOT NULL REFERENCES camera.authentication_type(id),
   authentication_credentials_id INTEGER REFERENCES camera.authentication_credentials(id),
   ipv4 INET,
@@ -151,7 +152,8 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   "manufacturer" text,
   "model" text,
   "type" text,
-  "snapshot_channel" text,
+  "snapshot channel" text,
+  "default video channel" text,
   "Authentication type" text,
   "Authentication credentials" text,
   "IPv4 Address" inet,
@@ -172,6 +174,7 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
     model_id,
     type_id,
     snapshot_channel_id,
+    default_stream_channel_id,
     authentication_type_id,
     authentication_credentials_id,
     ipv4,
@@ -194,9 +197,11 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   (SELECT id from camera.channel WHERE model_id = (
     SELECT id from camera.model WHERE model = $5
   ) and channel.channel_name = $7),
-  (SELECT id from camera.authentication_type WHERE authentication_type = $8),
-  (SELECT id from camera.authentication_credentials WHERE credential_name = $9),
-  $10,
+  (SELECT id from camera.channel WHERE model_id = (
+    SELECT id from camera.model WHERE model = $5
+  ) and channel.channel_name = $8),
+  (SELECT id from camera.authentication_type WHERE authentication_type = $9),
+  (SELECT id from camera.authentication_credentials WHERE credential_name = $10),
   $11,
   $12,
   $13,
@@ -205,7 +210,8 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
   $16,
   $17,
   $18,
-  $19
+  $19,
+  $20
 ) RETURNING true;
 $$ language sql STRICT;
 
@@ -267,6 +273,7 @@ FROM
   camera.authentication_type
 $$ LANGUAGE SQL STRICT;
 
+-- Need to update to use the default_stream_channel_id for the stream protocol and extension instead of snapshot.
 CREATE OR REPLACE FUNCTION camera.get_all_cameras () RETURNS TABLE (
     longitude FLOAT8,
     latitude FLOAT8,
