@@ -215,6 +215,61 @@ CREATE OR REPLACE FUNCTION "camera"."add_device"(
 ) RETURNING true;
 $$ language sql STRICT;
 
+--Export function for device
+CREATE OR REPLACE FUNCTION "camera"."get_all_devices" () RETURNS TABLE (
+  "longitude" FLOAT8,
+  "latitude" FLOAT8,
+  "control protocol" VARCHAR(128),
+  "manufacturer" VARCHAR(128),
+  "model" VARCHAR(128),
+  "type" VARCHAR(128),
+  "snapshot channel" VARCHAR(128),
+  "default video channel" VARCHAR(128),
+  "Authentication type" VARCHAR(128),
+  "Authentication credentials" VARCHAR(128),
+  "IPv4 Address" INET,
+  "IPv6 Address" INET,
+  "Multicast Address" INET,
+  "Friendly name" VARCHAR(128),
+  "Description" VARCHAR(128),
+  "Camera number" INTEGER,
+  "Physical number" INTEGER,
+  "Publish stream" BOOLEAN,
+  "Publish snapshot" BOOLEAN,
+  "Latency" INTEGER
+) AS $$ SELECT
+  ST_X ( device.location_geometry ) AS longitude,
+  ST_Y ( device.location_geometry ) AS latitude,
+  control.control_protocol,
+  manufacturer.manufacturer,
+  model.model,
+  type.type,
+  i1.channel_name AS "snapshot channel",
+  i2.channel_name AS "default video channel",
+  authentication_type.authentication_type,
+  authentication_credentials.credential_name,
+  device.ipv4,
+  device.ipv6,
+  device.multicast,
+  device.friendly_name,
+  device.description,
+  device.camera_number,
+  device.physical_number,
+  device.publish_stream,
+  device.publish_snapshot,
+  device.latency
+FROM
+  camera.device
+  INNER JOIN camera.control ON device.control_id = control.id
+  INNER JOIN camera.manufacturer ON device.manufacturer_id = manufacturer.id
+  INNER JOIN camera.model ON device.model_id = model.id
+  INNER JOIN camera.type ON device.type_id = type.id
+  INNER JOIN camera.channel i1 ON device.snapshot_channel_id = i1.id
+  INNER JOIN camera.channel i2 ON device.default_stream_channel_id = i2.id
+  INNER JOIN camera.authentication_type ON device.authentication_type_id = authentication_type.id
+  INNER JOIN camera.authentication_credentials ON device.authentication_credentials_id = authentication_credentials.id
+$$ language sql STRICT;
+
 
 -- Insertion function for control protocols
 CREATE OR REPLACE FUNCTION camera.add_control_protocol(
@@ -422,7 +477,7 @@ CREATE OR REPLACE FUNCTION camera.add_monitor(
   "Monitor Group Name" TEXT,
   "Current Layout Name" TEXT,
   "Authentication Type Name" TEXT,
-  "Credential Name" TEXT
+  "Credential Name" TEXT,
   "IPv4 Address" INET,
   "IPv6 Address" INET,
   "Multicast Address" INET, 
@@ -448,12 +503,15 @@ CREATE OR REPLACE FUNCTION camera.add_monitor(
   (SELECT id from camera.video_driver WHERE driver = $1),
   (SELECT id from camera.monitor_group WHERE name = $2),
   (SELECT id from camera.monitor_layout WHERE name = $3),
-  (SELECT id from camera.authentication_type WHERE authentication_type = $4)
-  (SELECT id from camera.authentication_credentials WHERE credential_name =$5)
+  (SELECT id from camera.authentication_type WHERE authentication_type = $4),
+  (SELECT id from camera.authentication_credentials WHERE credential_name =$5),
   $6,
   $7,
   $8,
-  $9
+  $9,
+  $10,
+  $11,
+  $12
 ) RETURNING TRUE;
 $$ LANGUAGE SQL STRICT;
 
